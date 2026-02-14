@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY backend/pyproject.toml /app/pyproject.toml
+
+RUN pip install --no-cache-dir -U pip \
+  && pip install --no-cache-dir uvicorn fastapi sqlalchemy psycopg[binary] celery redis alpaca-py pydantic-settings
+
+COPY backend/app /app/app
+ENV PYTHONPATH=/app
