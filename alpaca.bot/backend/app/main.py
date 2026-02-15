@@ -1,7 +1,15 @@
 from fastapi import FastAPI
 from app.db.models import Base
 from app.db.session import engine
-from app.api.routes import health, strategies, runs, metrics, settings as settingsRoutes, ws
+from app.api.routes import (
+    health, 
+    strategies, 
+    runs, 
+    metrics, 
+    settings as settingsRoutes, 
+    ws,
+    symbols,
+)
 from fastapi.middleware.cors import CORSMiddleware
 
 Base.metadata.create_all(bind=engine)
@@ -24,3 +32,4 @@ app.include_router(runs.router, prefix="/api")
 app.include_router(metrics.router, prefix="/api")
 app.include_router(settingsRoutes.router, prefix="/api")
 app.include_router(ws.router, prefix="/api")
+app.include_router(symbols.router, prefix="/api")

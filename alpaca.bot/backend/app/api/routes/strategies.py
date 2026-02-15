@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -40,7 +40,7 @@ def create_strategy(payload: StrategyIn, db: Session = Depends(get_db)):
         interval_seconds=payload.interval_seconds,
         symbols=payload.symbols,
         params=payload.params,
-        updated_at=datetime.utcnow(),
+        updated_at=datetime.now(timezone.utc),
     )
     db.add(s)
     db.commit()
@@ -59,7 +59,7 @@ def update_strategy(strategy_id: str, payload: StrategyIn, db: Session = Depends
     s.interval_seconds = payload.interval_seconds
     s.symbols = payload.symbols
     s.params = payload.params
-    s.updated_at = datetime.now(datetime.timezone.utc)
+    s.updated_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(s)

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { WsProvider } from "@/providers/ws-provider";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -35,27 +36,33 @@ const NAV: NavItem[] = [
   },
   { to: "/strategies", label: "Strategies", icon: <Bot className="h-4 w-4" /> },
   { to: "/runs", label: "Runs", icon: <Activity className="h-4 w-4" /> },
-  { to: "/settings", label: "Settings", icon: <Settings className="h-4 w-4" /> },
+  {
+    to: "/settings",
+    label: "Settings",
+    icon: <Settings className="h-4 w-4" />,
+  },
 ];
 
 function RootComponent() {
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Desktop sidebar */}
-      <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-64 md:flex-col">
-        <Sidebar />
-      </aside>
+    <WsProvider>
+      <div className="min-h-dvh bg-background">
+        {/* Desktop sidebar */}
+        <aside className="hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:w-64 md:flex-col">
+          <Sidebar />
+        </aside>
 
-      {/* Content area */}
-      <div className="md:pl-64">
-        <Header />
-        <main className="mx-auto max-w-6xl px-4 py-6">
-          <Outlet />
-        </main>
+        {/* Content area */}
+        <div className="md:pl-64">
+          <Header />
+          <main className="mx-auto max-w-6xl px-4 py-6">
+            <Outlet />
+          </main>
+        </div>
+
+        <TanStackRouterDevtools position="bottom-right" />
       </div>
-
-      <TanStackRouterDevtools position="bottom-right" />
-    </div>
+    </WsProvider>
   );
 }
 
@@ -83,12 +90,8 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </div>
 
         <div className="leading-tight">
-          <div className="text-sm font-semibold tracking-tight">
-            alpaca-bot
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Control center
-          </div>
+          <div className="text-sm font-semibold tracking-tight">alpaca-bot</div>
+          <div className="text-xs text-muted-foreground">Control center</div>
         </div>
       </div>
 
@@ -151,14 +154,16 @@ function SideNavLink({
         "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         active
           ? "bg-gradient-to-r from-primary/10 via-muted to-muted text-foreground shadow-sm"
-          : "text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:shadow-sm hover:-translate-y-[1px]"
+          : "text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:shadow-sm hover:-translate-y-[1px]",
       )}
     >
       {/* Active accent bar */}
       <span
         className={cn(
           "absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full transition-opacity",
-          active ? "bg-primary opacity-100" : "opacity-0 group-hover:opacity-40"
+          active
+            ? "bg-primary opacity-100"
+            : "opacity-0 group-hover:opacity-40",
         )}
       />
       <span
@@ -166,7 +171,7 @@ function SideNavLink({
           "flex h-7 w-7 items-center justify-center rounded-lg border transition",
           active
             ? "bg-background shadow-sm"
-            : "bg-background/40 group-hover:bg-background"
+            : "bg-background/40 group-hover:bg-background",
         )}
       >
         {item.icon}

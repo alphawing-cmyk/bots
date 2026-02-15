@@ -48,3 +48,30 @@ class BotSetting(Base):
     key: Mapped[str] = mapped_column(String(120), primary_key=True)
     value: Mapped[dict] = mapped_column(JSON, default=dict)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
+
+
+class Symbol(Base):
+    __tablename__ = "symbols"
+
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+
+    # Ticker, e.g. "AAPL"
+    symbol: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+
+    # Optional metadata for UI / filtering
+    name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    exchange: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    asset_class: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Freeform JSON (sector, tags, alpaca asset fields, etc.)
+    meta: Mapped[dict] = mapped_column(JSON, default=dict)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.utcnow
+    )

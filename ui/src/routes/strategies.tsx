@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { StrategiesTable } from "@/components/strategies/strategies-table";
 import { StrategyFormDialog } from "@/components/strategies/strategy-form-dialog";

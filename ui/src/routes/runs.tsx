@@ -12,7 +12,7 @@ import {
 } from "@tanstack/react-table";
 
 import { api } from "@/lib/api";
-import { BotWsClient, makeWsUrl } from "@/lib/ws";
+import { useWs } from "@/providers/ws-provider";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import {
   Table,
   TableBody,
@@ -86,16 +85,13 @@ function fmtDuration(ms: number | null) {
   return `${s}s`;
 }
 
-function safeCount(obj: any, path: string) {
-  // expected: signals = { count, items }, orders = []
+function safeCount(obj: any, path: "signals" | "orders") {
   if (path === "signals") return Number(obj?.signals?.count ?? 0) || 0;
-  if (path === "orders")
-    return Array.isArray(obj?.orders) ? obj.orders.length : 0;
+  if (path === "orders") return Array.isArray(obj?.orders) ? obj.orders.length : 0;
   return 0;
 }
 
 function toDateTimeLocalValue(d: Date) {
-  // yyyy-MM-ddTHH:mm for <input type="datetime-local" />
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
     d.getHours(),
@@ -103,6 +99,9 @@ function toDateTimeLocalValue(d: Date) {
 }
 
 function RunsPage() {
+  // ✅ react-use-websocket provider
+  const { lastMessage, status: wsStatus } = useWs();
+
   const [strategies, setStrategies] = React.useState<StrategyRow[]>([]);
   const [rows, setRows] = React.useState<RunRow[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -137,7 +136,6 @@ function RunsPage() {
     if (status !== "all") params.set("status", status);
     if (strategyId !== "all") params.set("strategy_id", strategyId);
 
-    // Convert datetime-local string to ISO if present
     if (since) params.set("since", new Date(since).toISOString());
     if (until) params.set("until", new Date(until).toISOString());
 
@@ -146,7 +144,7 @@ function RunsPage() {
         api.listStrategies(),
         (async () => {
           const API_BASE =
-            import.meta.env.VITE_API_BASE ?? "http://localhost:8000/api";
+            import.meta.env.VITE_API_BASE ?? "http://localhost:8001/api";
           const res = await fetch(`${API_BASE}/runs?${params.toString()}`);
           if (!res.ok) throw new Error(await res.text());
           return (await res.json()) as RunRow[];
@@ -164,48 +162,39 @@ function RunsPage() {
     load();
   }, [load]);
 
-  // Live updates: merge run events into table without polling
+  // ✅ Live updates: react to lastMessage changes (no subscribe/unsubscribe)
   React.useEffect(() => {
-    const ws = new BotWsClient(makeWsUrl("/api/ws"));
-    const unsub = ws.subscribe((msg) => {
-      if (!msg || typeof msg !== "object") return;
+    const msg = lastMessage;
+    if (!msg || typeof msg !== "object") return;
 
-      if (msg.type === "run_completed" || msg.type === "run_error") {
-        const run = msg.run as RunRow | undefined;
-        if (!run?.id) return;
+    if (msg.type === "run_completed" || msg.type === "run_error") {
+      const run = msg.run as RunRow | undefined;
+      if (!run?.id) return;
 
-        // Apply current filters — if it doesn't match, ignore
-        if (status !== "all" && run.status !== status) return;
-        if (strategyId !== "all" && run.strategy_id !== strategyId) return;
+      // Apply current filters — if it doesn't match, ignore
+      if (status !== "all" && run.status !== status) return;
+      if (strategyId !== "all" && run.strategy_id !== strategyId) return;
 
-        if (since) {
-          const sinceIso = new Date(since).toISOString();
-          if (run.started_at < sinceIso) return;
-        }
-        if (until) {
-          const untilIso = new Date(until).toISOString();
-          if (run.started_at > untilIso) return;
-        }
-
-        setRows((prev) => {
-          const idx = prev.findIndex((x) => x.id === run.id);
-          if (idx >= 0) {
-            const next = prev.slice();
-            next[idx] = run;
-            return next;
-          }
-          // prepend newest
-          return [run, ...prev].slice(0, 200);
-        });
+      if (since) {
+        const sinceIso = new Date(since).toISOString();
+        if (run.started_at < sinceIso) return;
       }
-    });
+      if (until) {
+        const untilIso = new Date(until).toISOString();
+        if (run.started_at > untilIso) return;
+      }
 
-    ws.start();
-    return () => {
-      unsub();
-      ws.stop();
-    };
-  }, [since, status, strategyId, until]);
+      setRows((prev) => {
+        const idx = prev.findIndex((x) => x.id === run.id);
+        if (idx >= 0) {
+          const next = prev.slice();
+          next[idx] = run;
+          return next;
+        }
+        return [run, ...prev].slice(0, 200);
+      });
+    }
+  }, [lastMessage, since, until, status, strategyId]);
 
   const columns = React.useMemo<ColumnDef<RunRow>[]>(
     () => [
@@ -237,10 +226,7 @@ function RunsPage() {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <Badge
-            className="rounded-full"
-            variant={statusBadgeVariant(row.original.status)}
-          >
+          <Badge className="rounded-full" variant={statusBadgeVariant(row.original.status)}>
             {row.original.status}
           </Badge>
         ),
@@ -249,18 +235,14 @@ function RunsPage() {
         id: "signals",
         header: "Signals",
         cell: ({ row }) => (
-          <div className="tabular-nums">
-            {safeCount(row.original, "signals")}
-          </div>
+          <div className="tabular-nums">{safeCount(row.original, "signals")}</div>
         ),
       },
       {
         id: "orders",
         header: "Orders",
         cell: ({ row }) => (
-          <div className="tabular-nums">
-            {safeCount(row.original, "orders")}
-          </div>
+          <div className="tabular-nums">{safeCount(row.original, "orders")}</div>
         ),
       },
       {
@@ -298,12 +280,18 @@ function RunsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Runs</h1>
-        <p className="text-sm text-muted-foreground">
-          Inspect recent strategy executions, filter by status/strategy/time,
-          and see errors quickly.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold">Runs</h1>
+          <p className="text-sm text-muted-foreground">
+            Inspect recent strategy executions, filter by status/strategy/time,
+            and see errors quickly.
+          </p>
+        </div>
+
+        <span className="hidden sm:inline-flex rounded-full border px-2 py-1 text-xs text-muted-foreground">
+          WS: {wsStatus}
+        </span>
       </div>
 
       <Card className="rounded-2xl">
@@ -399,10 +387,7 @@ function RunsPage() {
                       <TableHead key={h.id} className="whitespace-nowrap">
                         {h.isPlaceholder
                           ? null
-                          : flexRender(
-                              h.column.columnDef.header,
-                              h.getContext(),
-                            )}
+                          : flexRender(h.column.columnDef.header, h.getContext())}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -415,10 +400,7 @@ function RunsPage() {
                     <TableRow key={r.id}>
                       {r.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -439,8 +421,7 @@ function RunsPage() {
 
           <div className="flex items-center justify-between gap-3">
             <div className="text-xs text-muted-foreground">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
+              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -465,8 +446,7 @@ function RunsPage() {
           </div>
 
           <div className="text-xs text-muted-foreground">
-            Live updates are enabled (WebSocket). New runs will appear
-            automatically.
+            Live updates are enabled (WebSocket). New runs will appear automatically.
           </div>
         </CardContent>
       </Card>
