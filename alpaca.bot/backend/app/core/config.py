@@ -1,5 +1,10 @@
-from pydantic import BaseModel
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+ENV_FILE = BASE_DIR / ".env"
+
+print(ENV_FILE)
 
 class Settings(BaseSettings):
     alpaca_api_key: str
@@ -11,9 +16,13 @@ class Settings(BaseSettings):
     celery_result_backend: str
 
     app_env: str = "dev"
+    port:str
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=str(ENV_FILE),
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
 
 settings = Settings()

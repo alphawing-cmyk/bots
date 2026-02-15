@@ -8,6 +8,8 @@ from app.db import models
 from app.strategies.registry import build_registry
 from app.engine.execution import execute_signals
 from app.engine.risk import RiskLimits
+from app.core.events import publish_event
+
 
 # stub market data provider (replace with Alpaca data API / Polygon later)
 class MarketData:
@@ -84,10 +86,44 @@ def run_strategy(strategy_id: str):
 
         db.commit()
 
+        publish_event({
+            "type": "run_completed",
+            "strategy_id": strategy_id,
+            "run": {
+                "id": run.id,
+                "strategy_id": run.strategy_id,
+                "started_at": run.started_at,
+                "finished_at": run.finished_at,
+                "status": run.status,
+                "message": run.message,
+                "signals": run.signals,
+                "orders": run.orders,
+                "metrics": run.metrics,
+            }
+        })
+
+
     except Exception as e:
         run.status = "error"
         run.message = str(e)
         run.finished_at = datetime.now(timezone.utc)
         db.commit()
+
+        publish_event({
+            "type": "run_error",
+            "strategy_id": strategy_id,
+            "run": {
+                "id": run.id,
+                "strategy_id": run.strategy_id,
+                "started_at": run.started_at,
+                "finished_at": run.finished_at,
+                "status": run.status,
+                "message": run.message,
+                "signals": run.signals,
+                "orders": run.orders,
+                "metrics": run.metrics,
+            }
+        })
+
     finally:
         db.close()
