@@ -37,4 +37,39 @@ export const api = {
       return res.json();
     });
   },
+  listSymbols: async () => {
+    const base = import.meta.env.VITE_API_BASE ?? "http://localhost:8001/api";
+    const r = await fetch(`${base}/symbols?limit=500`);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+
+  createSymbol: async (payload: any) => {
+    const base = import.meta.env.VITE_API_BASE ?? "http://localhost:8001/api";
+    const r = await fetch(`${base}/symbols`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+
+  updateSymbol: async (id: string, patch: any) => {
+    const base = import.meta.env.VITE_API_BASE ?? "http://localhost:8001/api";
+    const r = await fetch(`${base}/symbols/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  },
+
+  deleteSymbol: async (id: string) => {
+    const base = import.meta.env.VITE_API_BASE ?? "http://localhost:8001/api";
+    const r = await fetch(`${base}/symbols/${id}`, { method: "DELETE" });
+    if (!r.ok) throw new Error(await r.text());
+    return true;
+  },
 };

@@ -12,6 +12,7 @@ export function AppShell({ children }: PropsWithChildren) {
             <Link to="/dashboard" className={cn("text-muted-foreground hover:text-foreground")}>Dashboard</Link>
             <Link to="/strategies" className={cn("text-muted-foreground hover:text-foreground")}>Strategies</Link>
             <Link to="/runs" className={cn("text-muted-foreground hover:text-foreground")}>Runs</Link>
+            <Link to="/symbols" className={cn("text-muted-foreground hover:text-foreground")}>Symbols</Link>
           </nav>
         </div>
 

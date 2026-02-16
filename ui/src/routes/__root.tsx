@@ -6,18 +6,25 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Menu, LayoutDashboard, Activity, Settings, Bot } from "lucide-react";
-
+import {
+  Menu,
+  LayoutDashboard,
+  Activity,
+  Settings,
+  Bot,
+  ComponentIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WsProvider } from "@/providers/ws-provider";
+import NotFoundPage from "./$404";
 
 export const Route = createRootRoute({
   component: RootComponent,
+  notFoundComponent: NotFoundPage,
 });
 
 type NavItem = {
@@ -33,6 +40,11 @@ const NAV: NavItem[] = [
     label: "Dashboard",
     icon: <LayoutDashboard className="h-4 w-4" />,
     exact: true,
+  },
+  {
+    to: "/symbols",
+    label: "Symbols",
+    icon: <ComponentIcon className="h-4 w-4" />,
   },
   { to: "/strategies", label: "Strategies", icon: <Bot className="h-4 w-4" /> },
   { to: "/runs", label: "Runs", icon: <Activity className="h-4 w-4" /> },

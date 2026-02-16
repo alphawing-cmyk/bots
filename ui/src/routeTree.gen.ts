@@ -9,11 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SymbolsRouteImport } from './routes/symbols'
 import { Route as StrategiesRouteImport } from './routes/strategies'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as R404RouteImport } from './routes/$404'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SymbolsRoute = SymbolsRouteImport.update({
+  id: '/symbols',
+  path: '/symbols',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StrategiesRoute = StrategiesRouteImport.update({
   id: '/strategies',
   path: '/strategies',
@@ -29,6 +36,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const R404Route = R404RouteImport.update({
+  id: '/$404',
+  path: '/$404',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,40 +49,62 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$404': typeof R404Route
   '/dashboard': typeof DashboardRoute
   '/runs': typeof RunsRoute
   '/strategies': typeof StrategiesRoute
+  '/symbols': typeof SymbolsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$404': typeof R404Route
   '/dashboard': typeof DashboardRoute
   '/runs': typeof RunsRoute
   '/strategies': typeof StrategiesRoute
+  '/symbols': typeof SymbolsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$404': typeof R404Route
   '/dashboard': typeof DashboardRoute
   '/runs': typeof RunsRoute
   '/strategies': typeof StrategiesRoute
+  '/symbols': typeof SymbolsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/runs' | '/strategies'
+  fullPaths: '/' | '/$404' | '/dashboard' | '/runs' | '/strategies' | '/symbols'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/runs' | '/strategies'
-  id: '__root__' | '/' | '/dashboard' | '/runs' | '/strategies'
+  to: '/' | '/$404' | '/dashboard' | '/runs' | '/strategies' | '/symbols'
+  id:
+    | '__root__'
+    | '/'
+    | '/$404'
+    | '/dashboard'
+    | '/runs'
+    | '/strategies'
+    | '/symbols'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  R404Route: typeof R404Route
   DashboardRoute: typeof DashboardRoute
   RunsRoute: typeof RunsRoute
   StrategiesRoute: typeof StrategiesRoute
+  SymbolsRoute: typeof SymbolsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/symbols': {
+      id: '/symbols'
+      path: '/symbols'
+      fullPath: '/symbols'
+      preLoaderRoute: typeof SymbolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/strategies': {
       id: '/strategies'
       path: '/strategies'
@@ -92,6 +126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$404': {
+      id: '/$404'
+      path: '/$404'
+      fullPath: '/$404'
+      preLoaderRoute: typeof R404RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -104,9 +145,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  R404Route: R404Route,
   DashboardRoute: DashboardRoute,
   RunsRoute: RunsRoute,
   StrategiesRoute: StrategiesRoute,
+  SymbolsRoute: SymbolsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
