@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 import json
 
 
+
 ### Helpers
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -86,7 +87,6 @@ class StrategyBase:
         return bool(self.db_row and self.db_row.enabled)
 
     def interval_seconds(self) -> int:
-        # default to 60 if missing/invalid
         if not self.db_row:
             return 60
         try:
