@@ -77,6 +77,8 @@ function summarizeParams(params: any) {
 }
 
 export function StrategiesTable({ rows, onChanged }: Props) {
+
+  console.log(rows);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "name", desc: false },
@@ -292,7 +294,7 @@ export function StrategiesTable({ rows, onChanged }: Props) {
               value={globalFilter ?? ""}
               onChange={(e) => setGlobalFilter(e.target.value)}
               placeholder="Search name, type, symbol…"
-              className="h-9 w-[260px] rounded-xl"
+              className="h-9 w-65 rounded-xl"
             />
             <Button
               variant="secondary"
