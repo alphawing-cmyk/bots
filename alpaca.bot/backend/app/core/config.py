@@ -4,7 +4,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parents[2]
 ENV_FILE = BASE_DIR / ".env"
 
-print(ENV_FILE)
 
 class Settings(BaseSettings):
     alpaca_api_key: str

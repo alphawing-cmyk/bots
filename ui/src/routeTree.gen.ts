@@ -13,7 +13,7 @@ import { Route as SymbolsRouteImport } from './routes/symbols'
 import { Route as StrategiesRouteImport } from './routes/strategies'
 import { Route as RunsRouteImport } from './routes/runs'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as R404RouteImport } from './routes/$404'
+import { Route as R404RouteImport } from './routes/404'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SymbolsRoute = SymbolsRouteImport.update({
@@ -37,8 +37,8 @@ const DashboardRoute = DashboardRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const R404Route = R404RouteImport.update({
-  id: '/$404',
-  path: '/$404',
+  id: '/404',
+  path: '/404',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -49,7 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$404': typeof R404Route
+  '/404': typeof R404Route
   '/dashboard': typeof DashboardRoute
   '/runs': typeof RunsRoute
   '/strategies': typeof StrategiesRoute
@@ -57,7 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$404': typeof R404Route
+  '/404': typeof R404Route
   '/dashboard': typeof DashboardRoute
   '/runs': typeof RunsRoute
   '/strategies': typeof StrategiesRoute
@@ -66,7 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$404': typeof R404Route
+  '/404': typeof R404Route
   '/dashboard': typeof DashboardRoute
   '/runs': typeof RunsRoute
   '/strategies': typeof StrategiesRoute
@@ -74,13 +74,13 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$404' | '/dashboard' | '/runs' | '/strategies' | '/symbols'
+  fullPaths: '/' | '/404' | '/dashboard' | '/runs' | '/strategies' | '/symbols'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$404' | '/dashboard' | '/runs' | '/strategies' | '/symbols'
+  to: '/' | '/404' | '/dashboard' | '/runs' | '/strategies' | '/symbols'
   id:
     | '__root__'
     | '/'
-    | '/$404'
+    | '/404'
     | '/dashboard'
     | '/runs'
     | '/strategies'
@@ -126,10 +126,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$404': {
-      id: '/$404'
-      path: '/$404'
-      fullPath: '/$404'
+    '/404': {
+      id: '/404'
+      path: '/404'
+      fullPath: '/404'
       preLoaderRoute: typeof R404RouteImport
       parentRoute: typeof rootRouteImport
     }

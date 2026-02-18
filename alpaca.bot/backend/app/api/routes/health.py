@@ -1,10 +1,8 @@
 from __future__ import annotations
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import redis
-
 from app.db.session import get_db
 from app.core.config import settings
 

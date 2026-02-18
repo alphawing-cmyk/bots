@@ -177,7 +177,7 @@ export function StrategiesTable({ rows, onChanged }: Props) {
           const rest = syms.length - shown.length;
           return (
             <div className="flex flex-wrap gap-1">
-              {shown.map((s) => (
+              {shown.slice(0,3).map((s) => (
                 <Badge key={s} variant="secondary" className="rounded-full">
                   {s}
                 </Badge>

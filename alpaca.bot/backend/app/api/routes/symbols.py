@@ -1,11 +1,9 @@
 from __future__ import annotations
-
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import select, or_, func
-
 from app.db.session import get_db
 from app.db import models
 

@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WsProvider } from "@/providers/ws-provider";
-import NotFoundPage from "./$404";
+import NotFoundPage from "./404";
 
 export const Route = createRootRoute({
   component: RootComponent,
