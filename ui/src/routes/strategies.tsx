@@ -37,8 +37,9 @@ function StrategiesPage() {
         open={open}
         onOpenChange={setOpen}
         onSubmit={async (v) => {
+          console.log(v);
           await api.createStrategy(v);
-          await refresh();
+          // await refresh();
           setOpen(false);
         }}
       />

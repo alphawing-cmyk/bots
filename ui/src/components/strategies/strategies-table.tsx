@@ -69,16 +69,8 @@ function safeSymbolList(v: any): string[] {
   return [];
 }
 
-function summarizeParams(params: any) {
-  if (!params || typeof params !== "object") return "—";
-  const entries = Object.entries(params).slice(0, 3);
-  if (!entries.length) return "—";
-  return entries.map(([k, val]) => `${k}:${String(val)}`).join(" · ");
-}
 
 export function StrategiesTable({ rows, onChanged }: Props) {
-
-  console.log(rows);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "name", desc: false },
@@ -112,6 +104,7 @@ export function StrategiesTable({ rows, onChanged }: Props) {
                   setBusyId(r.id);
                   try {
                     const payload: StrategyFormValues = {
+                      id: r.id,
                       name: r.name,
                       type: r.type,
                       enabled: checked,
@@ -190,15 +183,6 @@ export function StrategiesTable({ rows, onChanged }: Props) {
             </div>
           );
         },
-      },
-      {
-        id: "params",
-        header: "Params",
-        cell: ({ row }) => (
-          <div className="max-w-[340px] truncate text-sm text-muted-foreground">
-            {summarizeParams(row.original.params)}
-          </div>
-        ),
       },
       {
         accessorKey: "last_run_at",
@@ -397,6 +381,7 @@ export function StrategiesTable({ rows, onChanged }: Props) {
         initialValues={
           editRow
             ? {
+                id: editRow.id,
                 name: editRow.name,
                 type: editRow.type,
                 enabled: !!editRow.enabled,

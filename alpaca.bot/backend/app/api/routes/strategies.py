@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.db.session import get_db
@@ -9,12 +9,15 @@ from app.db import models
 router = APIRouter(tags=["strategies"])
 
 class StrategyIn(BaseModel):
+    id: str
     name: str
     type: str
     enabled: bool = False
     interval_seconds: int = Field(default=60, ge=5, le=86400)
     symbols: list[str] = Field(default_factory=list)
     params: dict = Field(default_factory=dict)
+    model_config = ConfigDict(extra='allow')
+ 
 
 class StrategyOut(StrategyIn):
     id: str
@@ -32,8 +35,11 @@ def create_strategy(payload: StrategyIn, db: Session = Depends(get_db)):
     exists = db.execute(select(models.StrategyConfig).where(models.StrategyConfig.name == payload.name)).scalar_one_or_none()
     if exists:
         raise HTTPException(409, "Strategy name already exists")
+    
+    print(payload)
 
     s = models.StrategyConfig(
+        id=payload.id,
         name=payload.name,
         type=payload.type,
         enabled=payload.enabled,

@@ -28,12 +28,14 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
 export type StrategyFormValues = {
+  id: string;
   name: string;
   type: string;
   enabled: boolean;
   interval_seconds: number;
   symbols: string[];
   paramsJson: string; // JSON string in the form
+  params?: Record<any, any>;
 };
 
 type Props = {
@@ -45,17 +47,29 @@ type Props = {
   symbolOptions?: string[];
 };
 
-const DEFAULTS: StrategyFormValues = {
-  name: "",
-  type: "sma_cross",
-  enabled: false,
-  interval_seconds: 60,
-  symbols: ["AAPL"],
-  paramsJson: JSON.stringify(
-    { fast: 10, slow: 30, qty: 1, stop_loss_pct: 0.01, take_profit_pct: 0.02 },
-    null,
-    2,
-  ),
+const makeDefaults = (): StrategyFormValues => {
+  const id = uuidv4();
+
+  return {
+    id,
+    name: "",
+    type: "sma_cross",
+    enabled: false,
+    interval_seconds: 60,
+    symbols: ["AAPL"],
+    paramsJson: JSON.stringify(
+      {
+        fast: 10,
+        slow: 30,
+        qty: 1,
+        stop_loss_pct: 0.01,
+        take_profit_pct: 0.02,
+        strategy_id: id,
+      },
+      null,
+      2,
+    ),
+  };
 };
 
 function safeJsonParse(
@@ -381,7 +395,7 @@ export function StrategyFormDialog({
   symbolOptions = ["AAPL", "MSFT", "NVDA", "TSLA", "AMZN", "META", "GOOGL"],
 }: Props) {
   const [values, setValues] = React.useState<StrategyFormValues>(
-    initialValues ?? DEFAULTS,
+    initialValues ?? makeDefaults(),
   );
 
   const [saving, setSaving] = React.useState(false);
@@ -392,7 +406,7 @@ export function StrategyFormDialog({
 
   React.useEffect(() => {
     if (!open) return;
-    const v = initialValues ?? DEFAULTS;
+    const v = initialValues ?? makeDefaults();
     setValues(v);
     setError(null);
     setSaving(false);
@@ -452,18 +466,15 @@ export function StrategyFormDialog({
       return;
     }
 
-    const parsed = safeJsonParse(values.paramsJson);
-    if (!parsed.ok) {
-      setError(parsed.error);
-      return;
-    }
-
     const payload: StrategyFormValues = {
-      ...values,
       name: values.name.trim(),
       type: values.type.trim(),
       symbols: selectedSymbols.map(normalizeSymbol),
-      paramsJson: JSON.stringify(parsed.value, null, 2),
+      params: JSON.parse(values.paramsJson),
+      paramsJson: values.paramsJson,
+      id: values.id,
+      enabled: values.enabled,
+      interval_seconds: values.interval_seconds,
     };
 
     setSaving(true);
@@ -487,46 +498,70 @@ export function StrategyFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-2xl rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-base">{title}</DialogTitle>
-        </DialogHeader>
-
-        <ErrorBanner error={error} />
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <BasicFields values={values} setValues={setValues} />
-
-          <SymbolsMultiSelect
-            selectedSymbols={selectedSymbols}
-            options={options}
-            symbolsOpen={symbolsOpen}
-            setSymbolsOpen={setSymbolsOpen}
-            symbolsQuery={symbolsQuery}
-            setSymbolsQuery={setSymbolsQuery}
-            onToggle={toggleSymbol}
-            onRemove={removeSymbol}
-            onClear={() => setValues((p) => ({ ...p, symbols: [] }))}
-            onAddCustomFromQuery={addCustomFromQuery}
-          />
-
-          <StrategyIdField
-            paramsJson={values.paramsJson}
-            disabled={saving}
-            onChange={(next) => setValues((p) => ({ ...p, paramsJson: next }))}
-          />
-
-          <ParamsJsonField
-            paramsJson={values.paramsJson}
-            onChange={(v) => setValues((p) => ({ ...p, paramsJson: v }))}
-          />
+      <DialogContent
+        className={cn(
+          "min-w-2xl rounded-2xl",
+          "max-h-[600px] p-0", // <-- cap height + let us control padding inside
+          "flex flex-col overflow-hidden", // <-- enables internal scroll area
+        )}
+      >
+        {/* Header (fixed) */}
+        <div className="border-b px-6 py-4">
+          <DialogHeader>
+            <DialogTitle className="text-base">{title}</DialogTitle>
+          </DialogHeader>
         </div>
 
-        <FooterActions
-          saving={saving}
-          onCancel={() => onOpenChange(false)}
-          onSubmit={submit}
-        />
+        {/* Scrollable body */}
+        <div
+          className={cn(
+            "flex-1 overflow-y-auto px-6 py-4",
+            "scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent",
+            "hover:scrollbar-thumb-muted-foreground/50",
+          )}
+        >
+          <ErrorBanner error={error} />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <BasicFields values={values} setValues={setValues} />
+
+            <SymbolsMultiSelect
+              selectedSymbols={selectedSymbols}
+              options={options}
+              symbolsOpen={symbolsOpen}
+              setSymbolsOpen={setSymbolsOpen}
+              symbolsQuery={symbolsQuery}
+              setSymbolsQuery={setSymbolsQuery}
+              onToggle={toggleSymbol}
+              onRemove={removeSymbol}
+              onClear={() => setValues((p) => ({ ...p, symbols: [] }))}
+              onAddCustomFromQuery={addCustomFromQuery}
+            />
+
+            <StrategyIdField
+              paramsJson={values.paramsJson}
+              disabled={saving}
+              onChange={(next) =>
+                setValues((p) => ({ ...p, paramsJson: next }))
+              }
+              strategyId={values.id}
+            />
+
+            <ParamsJsonField
+              paramsJson={values.paramsJson}
+              onChange={(v) => setValues((p) => ({ ...p, paramsJson: v }))}
+            />
+          </div>
+        </div>
+
+        {/* Footer (fixed) */}
+        <div className="border-t bg-background/80 px-6 py-4 backdrop-blur">
+          <FooterActions
+            saving={saving}
+            onCancel={() => onOpenChange(false)}
+            onSubmit={submit}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -536,16 +571,18 @@ function StrategyIdField({
   paramsJson,
   onChange,
   disabled,
+  strategyId,
 }: {
   paramsJson: string;
   onChange: (nextParamsJson: string) => void;
   disabled?: boolean;
+  strategyId: string;
 }) {
   const parsed = React.useMemo(() => safeJsonParse(paramsJson), [paramsJson]);
   const currentId =
     parsed.ok && typeof parsed.value?.strategy_id === "string"
       ? parsed.value.strategy_id
-      : "";
+      : strategyId;
 
   const setStrategyId = (nextId: string) => {
     const base = parsed.ok ? parsed.value : {};
@@ -556,8 +593,8 @@ function StrategyIdField({
   const ensureStrategyId = React.useCallback(() => {
     // Only set if missing/empty
     if (currentId) return;
-    setStrategyId(uuidv4());
-  }, [currentId, parsed.ok]); // keep deps small; setStrategyId uses latest parsed via closure
+    setStrategyId(strategyId || uuidv4());
+  }, [currentId, strategyId, parsed.ok]);
 
   React.useEffect(() => {
     ensureStrategyId();

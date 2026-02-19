@@ -18,7 +18,6 @@ class StrategyConfig(Base):
     symbols: Mapped[list] = mapped_column(JSON, default=list)          # e.g. ["AAPL","MSFT"]
     params: Mapped[dict] = mapped_column(JSON, default=dict)           # strategy-specific
     last_run_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
