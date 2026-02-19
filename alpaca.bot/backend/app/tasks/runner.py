@@ -5,17 +5,15 @@ from sqlalchemy import select
 from app.tasks.celery_app import celery
 from app.db.session import SessionLocal
 from app.db import models
-from app.strategies.registry import build_registry
 from app.engine.execution import execute_signals
 from app.engine.risk import RiskLimits
 from app.core.events import publish_event
 
 
-# stub market data provider (replace with Alpaca data API / Polygon later)
-class MarketData:
-    def get_recent_closes(self, symbol: str, limit: int = 60) -> list[float]:
-        # TODO: implement real data fetch + caching
-        return []
+
+
+
+
 
 @celery.task(name="app.tasks.runner.tick")
 def tick():

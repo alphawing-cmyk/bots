@@ -579,10 +579,13 @@ function StrategyIdField({
   strategyId: string;
 }) {
   const parsed = React.useMemo(() => safeJsonParse(paramsJson), [paramsJson]);
-  const currentId =
+
+  const jsonId =
     parsed.ok && typeof parsed.value?.strategy_id === "string"
-      ? parsed.value.strategy_id
-      : strategyId;
+      ? parsed.value.strategy_id.trim()
+      : "";
+
+  const displayId = jsonId || strategyId;
 
   const setStrategyId = (nextId: string) => {
     const base = parsed.ok ? parsed.value : {};
@@ -590,15 +593,10 @@ function StrategyIdField({
     onChange(JSON.stringify(nextObj, null, 2));
   };
 
-  const ensureStrategyId = React.useCallback(() => {
-    // Only set if missing/empty
-    if (currentId) return;
-    setStrategyId(strategyId || uuidv4());
-  }, [currentId, strategyId, parsed.ok]);
-
   React.useEffect(() => {
-    ensureStrategyId();
-  }, [ensureStrategyId]);
+    if (jsonId) return;
+    setStrategyId(strategyId || uuidv4());
+  }, [jsonId, strategyId]); 
 
   return (
     <div className="md:col-span-2 flex items-center justify-between gap-3 rounded-xl border p-3">
@@ -608,7 +606,7 @@ function StrategyIdField({
           Stored in <span className="font-mono">params.strategy_id</span>
         </div>
         <div className="mt-2 font-mono text-xs break-all">
-          {currentId || "—"}
+          {displayId || "—"}
         </div>
       </div>
 
@@ -618,10 +616,7 @@ function StrategyIdField({
           variant="outline"
           className="h-9 rounded-lg"
           disabled={disabled}
-          onClick={() => {
-            if (!currentId) return;
-            navigator.clipboard?.writeText(currentId);
-          }}
+          onClick={() => displayId && navigator.clipboard?.writeText(displayId)}
         >
           Copy
         </Button>

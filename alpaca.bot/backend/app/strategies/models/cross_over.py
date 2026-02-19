@@ -25,6 +25,8 @@ class SmaCrossOverStrategy(StrategyBase):
     TYPE = "cross_over"
     display_name = "Crossover System"
 
+    
+
     # ---- Public entry point (call this from your scheduler/runner) ----
     def generate_signals(self, market: "MarketContext") -> List["Signal"]:
         if not self.is_enabled():
