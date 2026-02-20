@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     celery_broker_url: str
     celery_result_backend: str
 
+    polygon_api_key: str
+
     app_env: str = "dev"
     port:str
 
