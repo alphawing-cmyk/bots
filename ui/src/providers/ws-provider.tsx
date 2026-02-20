@@ -52,7 +52,9 @@ export function WsProvider({ children }: { children: React.ReactNode }) {
       reconnectAttempts: 10,
       reconnectInterval: 1000,
       share: true,
-      // Add retry on error
+      onMessage: (event) =>{
+        console.log(`Received Message: ${event.data}`);
+      },
       onError: (event) => {
         console.error("WebSocket error:", event);
       },

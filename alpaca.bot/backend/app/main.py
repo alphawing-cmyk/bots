@@ -11,8 +11,16 @@ from app.api.routes import (
     symbols,
 )
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+import sys
 
 Base.metadata.create_all(bind=engine)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s:%(levelname)s:%(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 app = FastAPI(title="Alpaca Bot API")
 
